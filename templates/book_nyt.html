@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="book-container">
+  <div class="book-content">
+    <div class="book-cover">
+      {% if book.cover_url %}
+        <img src="{{ book.cover_url }}" alt="Cover image of {{ book.title }}" />
+      {% else %}
+        <img src="{{ url_for('static', filename='default_cover.jpg') }}" alt="No cover image available" />
+      {% endif %}
+    </div>
+
+    <div class="book-info">
+      <div class="header">
+        <h1>{{ book.title }}</h1>
+      </div>
+
+      <div class="book-meta">
+        <div class="meta-item">
+          <span class="meta-label">Author(s):</span>
+          <span class="meta-content">{{ book.authors }}</span>
+        </div>
+
+        <div class="meta-item">
+          <span class="meta-label">Publisher:</span>
+          <span class="meta-content">{{ book.publisher }}</span>
+        </div>
+
+        <div class="meta-item">
+          <span class="meta-label">Categories:</span>
+          <span class="meta-content">{{ book.categories }}</span>
+        </div>
+
+        <div class="meta-item">
+          <span class="meta-label">Description:</span>
+          <p class="meta-content">{{ book.description }}</p>
+        </div>
+      </div>
+
+      <div class="button-container">
+        <form action="{{ url_for('add_book') }}" method="post">
+          <input type="hidden" name="title" value="{{ book.title }}" />
+          <input type="hidden" name="author" value="{{ book.authors }}" />
+          <input type="hidden" name="cover_url" value="{{ book.cover_url }}" />
+          <input type="hidden" name="infoLink" value="{{ book.infoLink }}" />
+          <button type="submit" class="fa" title="Add to list">★</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <a href="{{ url_for('home') }}" class="back-link">Back to Home</a>
+</div>
+{% endblock %}

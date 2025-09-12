@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ title | default("ReadGood") }}</title>
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='favicon.ico') }}"
+      type="image/x-icon"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}" />
+    <link REL="stylesheet" href="{{ url_for('static', filename='navbar.css') }}">
+  </head>
+
+  <body>
+    <nav class="navbar">
+      <a href="{{ url_for('home') }}" class="logo">
+        <img
+          src="{{ url_for('static', filename='logo.svg') }}"
+          alt="ReadGood Logo"
+        />
+        <span>ReadGood</span>
+      </a>
+
+      <div class="nav-center">
+        <a href="{{ url_for('home') }}">Home</a>
+        <a href="{{ url_for('user_books') }}">My Books</a>
+        <div class="dropdown">
+          <button class="dropdown-btn">
+            Top Genres <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="dropdown-content">
+            <a href="{{ url_for('books_by_genre', code='FIC') }}">Fiction</a>
+            <a href="{{ url_for('books_by_genre', code='FAN') }}">Fantasy</a>
+            <a href="{{ url_for('books_by_genre', code='ROM') }}">Romance</a>
+            <a href="{{ url_for('books_by_genre', code='MYS') }}">Mystery</a>
+            <a href="{{ url_for('books_by_genre', code='THR') }}">Thriller</a>
+          </div>
+        </div>
+        <div class="dropdown">
+          <button class="dropdown-btn">
+            Top Authors <i class="fas fa-chevron-down"></i>
+          </button>
+          <div class="dropdown-content">
+            <a href="{{ url_for('books_by_author', code='SK') }}">Stephen King</a>
+            <a href="{{ url_for('books_by_author', code='GM') }}">George R.R. Martin</a>
+            <a href="{{ url_for('books_by_author', code='WS') }}">William Shakespeare</a>
+            <a href="{{ url_for('books_by_author', code='HM') }}">Haruki Murakami</a>
+            <a href="{{ url_for('books_by_author', code='JA') }}">Jane Austen</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-right">
+        <form class="search-bar" action="{{ url_for('search') }}" method="post">
+          <input type="text" placeholder="Search Books" name="title" />
+          <button type="submit"><i class="fa fa-search"></i></button>
+        </form>
+        <a href="{{ url_for('logout') }}" class="logout-btn" title="Logout">
+          <img
+            src="{{ url_for('static', filename='logout.svg') }}"
+            alt="Logout"
+          />
+        </a>
+      </div>
+    </nav>
+
+    <main>
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <ul class="flashes">
+        {% for category, message in messages %}
+        <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %} {% endwith %} {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

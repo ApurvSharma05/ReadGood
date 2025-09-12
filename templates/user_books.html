@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}" />
+<div class="book-app">
+    <div class="header">
+        <h1>My Favourites</h1>
+    </div>
+    {% if books %}
+        <div class="books-container">
+            {% for book in books %}
+                <div class="card">
+                    <div class="cover">
+                        <img src="{{ book.cover_url }}" alt="Cover image of {{ book.title }}" class="cover-image">
+                    </div>
+                    <h3>{{ book.title }}</h3>
+                    <p class="author">By {{ book.author }}</p>
+                    <div class="button-container">
+                        <a href="{{ book.more_info_link }}"  class="btn">Learn More</a>
+                        <form action="{{ url_for('remove_book', book_id=book.id) }}" method="POST" style="margin: 0;">
+                            <button type="submit" title="Remove from list" class="fa fa-trash" style="color: red;"></button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <a href="{{ url_for('home') }}" class="back-link">Back to Home</a>
+            {% else %}
+            <div class="no-books">
+                <p>No books in your favourites yet. Start adding some!</p>
+            </div>
+            {% endif %}
+        {% endblock %}

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon" />
+  <title>ReadGood</title>
+  <link rel="stylesheet" href="static/hero.css">
+
+</head>
+
+<body>
+  <main class="hero">
+    <div class="hero-content">
+      <div class="logo-container">
+        <img src="{{ url_for('static', filename='logo.svg') }}" alt="ReadGood Logo" class="logo">
+        <h1 class="title">ReadGood</h1>
+      </div>
+      <p class="subtitle"><b>Welcome to ReadGood 📚</b><br>
+        Discover, Learn, and Grow with Every Book!
+        Your ultimate platform for finding your next favorite read. Explore curated collections, personalized
+        recommendations, and real-time reviews from book lovers like you.
+        Immerse yourself in a curated collection of literary treasures.
+      </p>
+      <a href="/home" class="cta">Begin Your Journey →</a>
+    </div>
+    <div class="books-display">
+      <div class="book">
+        <img src="https://tinyurl.com/5n94et6p" alt="Featured Book 1">
+      </div>
+      <div class="book">
+        <img src="https://tinyurl.com/tzh3wczw" alt="Featured Book 2">
+      </div>
+      <div class="book">
+        <img src="https://m.media-amazon.com/images/I/71SSsGP1ksL.jpg" alt="Featured Book 3">
+      </div>
+    </div>
+  </main>
+</body>
+
+</html>

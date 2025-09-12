@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="book-app">
+    <div class="header">
+        <h1>Search results for: 
+            <span class="title-highlight">{% if title_query %} "{{ title_query }}" {% endif %}
+            {% if title_query and author_query %} and {% endif %}
+            {% if author_query %} Author "{{ author_query }}" {% endif %}</span>
+        </h1>
+    </div>
+
+    {% if books %}
+        <div class="books-container">
+            {% for book in books %}
+                <div class="card">
+                    <div class="cover">
+                        <a href="{{ url_for('book_details', isbn=book.isbn) }}">
+                            <img class="cover-image" src="{{ book.cover_url }}" alt="Cover image of {{ book.title }}">
+                        </a>
+                    </div>
+                    <h3>{{ book.title }}</h3>
+                    <p class="author">By {{ book.author }}</p>
+                    <div class="button-container">
+                        <a href="{{ url_for('book_details', isbn=book.isbn) }}" class="btn">Learn More</a>
+                        <form action="{{ url_for('add_book') }}" method="post">
+                            <input type="hidden" name="title" value="{{ book.title }}">
+                            <input type="hidden" name="author" value="{{ book.author }}">
+                            <input type="hidden" name="cover_url" value="{{ book.cover_url }}">
+                            <input type="hidden" name="isbn" value="{{ book.isbn }}">
+                            <input type="hidden" name="infoLink" value="{{ book.infoLink }}">
+                            <button type="submit" class="fa" title="Add to list">★</button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="no-books">
+            <p>No books found matching your search criteria!</p>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

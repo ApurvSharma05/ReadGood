@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register</title>
+    <style>
+      :root {
+        --primary: #f6e6cb;
+        --accent: #bda08b;
+        --text: #2c1810;
+      }
+
+      body {
+        font-family: 'system-ui', sans-serif;
+        background: url("https://img.freepik.com/premium-photo/book-ppile-literature-hardback-leisure-fiction-read_488220-33855.jpg") center/cover fixed no-repeat;        margin: 0;
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .register-container {
+        background-color: var(--accent);
+        padding: 1rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+      }
+
+      h1 {
+        text-align: center;
+        color: var(--text);
+        margin-bottom: 1.5rem;
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      label {
+        font-weight: bolder;
+        color: #2c1810;
+      }
+
+      input {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+      }
+
+      button {
+        background-color: #2c1810;
+        color: white;
+        padding: 0.75rem;
+        border: none;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-top: 1rem;
+      }
+
+      button:hover {
+        background-color:#f6e6cb;
+        color: #2c1810;
+      }
+
+      .login-link {
+        text-align: center;
+        margin-top: 1rem;
+        color: #fff;
+      }
+
+      .login-link a {
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      .login-link a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="register-container">
+      <h1>Register</h1>
+      <form action="/register" method="post">
+        <div class="input-group">
+          <label for="username">Username</label>
+          <input
+            type="text"
+            id="username"
+            name="username"
+            required
+            pattern="[A-Za-z0-9]+"
+          />
+        </div>
+        <div class="input-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required />
+        </div>
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required />
+        </div>
+        <div class="input-group">
+          <label for="confirm-password">Confirm Password</label>
+          <input
+            type="password"
+            id="confirm-password"
+            name="confirm-password"
+            required
+          />
+        </div>
+        <button type="submit">Register</button>
+      </form>
+      <div class="login-link">
+        Already have an account? <a href="/login">Login here</a>
+      </div>
+    </div>
+  </body>
+</html>

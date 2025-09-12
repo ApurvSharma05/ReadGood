@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}" />
+<div class="book-app">
+  <div class="header">
+    <h1>Books By <span class="author-highlight">{{ author_name }}</span></h1>
+  </div>
+  <section class="carousel-section">
+    <div class="carousel-container">
+      <button class="nav-button left" onclick="scrollCarousel(-1, 'trending')">
+        &#8249;
+      </button>
+      <div class="card-carousel" id="carousel-trending" data-scroll-position="0">
+        {% if author_books %}
+        {% for book in author_books %}
+        <div class="card">
+          <div class="cover">
+            <img src="{{ book.cover_url }}" alt="Cover image of {{ book.title }}" class="cover-image" />
+          </div>
+          <h3>{{ book.title }}</h3>
+          <p class="author">By {{ book.author }}</p>
+          <div class="button-container">
+            <a href="{{url_for('book_details', isbn=book.isbn)}}" class="btn">Learn More</a>
+            <form action="{{ url_for('add_book') }}" method="post">
+              <input type="hidden" name="title" value="{{ book.title }}">
+              <input type="hidden" name="author" value="{{ book.author }}">
+              <input type="hidden" name="cover_url" value="{{ book.cover_url }}">
+              <input type="hidden" name="infoLink" value="{{ book.infoLink }}">
+              <button type="submit" class="fa" title="Add to list">★</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="no-books">
+          <p>No books found for this author.</p>
+          <a href="{{ url_for('home') }}" class="btn">Return Home</a>
+        </div>
+        {% endif %}
+      </div>
+      <button class="nav-button right" onclick="scrollCarousel(1, 'trending')">
+        &#8250;
+      </button>
+      <a href="{{ url_for('home') }}" class="back-link">Back to Home</a>
+    </div>
+  </section>
+
+  <script>
+    function scrollCarousel(direction, carouselId) {
+      const carousel = document.getElementById(`carousel-${carouselId}`);
+      const cardWidth = document.querySelector('.card').offsetWidth + 20; // Width + margin
+      const visibleCards = Math.floor(carousel.parentElement.offsetWidth / cardWidth);
+      const maxPosition = carousel.children.length - visibleCards;
+      let currentPosition = parseInt(carousel.getAttribute('data-scroll-position'));
+
+      currentPosition = Math.max(0, Math.min(currentPosition + direction, maxPosition));
+      carousel.setAttribute('data-scroll-position', currentPosition);
+      carousel.style.transform = `translateX(-${currentPosition * cardWidth}px)`;
+    }
+
+    // Optional: Auto-advance carousel
+    document.querySelectorAll('.card-carousel').forEach(carousel => {
+      setInterval(() => {
+        const cardWidth = document.querySelector('.card').offsetWidth + 20;
+        const visibleCards = Math.floor(carousel.parentElement.offsetWidth / cardWidth);
+        const maxPosition = carousel.children.length - visibleCards;
+        let currentPosition = parseInt(carousel.getAttribute('data-scroll-position'));
+
+        currentPosition = (currentPosition + 1) % (maxPosition + 1);
+        carousel.setAttribute('data-scroll-position', currentPosition);
+        carousel.style.transform = `translateX(-${currentPosition * cardWidth}px)`;
+      }, 5000);
+    });
+  </script>
+{% endblock %}

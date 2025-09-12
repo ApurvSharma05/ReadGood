@@ -1,0 +1,283 @@
+/* Navbar */
+.navbar {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 2rem;
+    background: var(--card-bg);
+    box-shadow: var(--shadow-md);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    border-bottom: 2px solid transparent;
+    transition: var(--transition);
+}
+
+.logo, .nav-center a, .dropdown-btn, .search-bar button, .logout-btn {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    transition: var(--transition);
+}
+
+.logo {
+    gap: 0.75rem;
+    text-decoration: none;
+    color: var(--primary);
+    flex-shrink: 0;
+    position: relative;
+}
+
+.logo::after, .nav-center a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--gradient);
+    transition: var(--transition);
+}
+
+.logo:hover::after, .nav-center a:hover::after {
+    width: 100%;
+}
+
+.logo img, .logout-btn img {
+    height: 2.5rem;
+    width: auto;
+}
+
+.logo:hover img, .logout-btn:hover img {
+    transform: scale(1.05);
+}
+
+.logo span {
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: var(--gradient);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.nav-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    margin: 0 auto;
+    flex-grow: 1;
+    padding: 0 3rem;
+}
+
+.nav-center a {
+    text-decoration: none;
+    color: var(--secondary);
+    font-weight: 600;
+    position: relative;
+}
+
+.nav-center a:hover {
+    color: var(--primary);
+    transform: translateY(-1px);
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-btn {
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--secondary);
+    cursor: pointer;
+    gap: 0.5rem;
+}
+
+.dropdown-btn:hover {
+    color: var(--primary);
+    transform: translateY(-1px);
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background: var(--card-bg);
+    min-width: 180px;
+    box-shadow: var(--shadow-lg);
+    border-radius: 8px;
+    overflow: hidden;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    animation: dropdownFade 0.3s ease;
+}
+
+.dropdown:hover .dropdown-content, .dropdown-content:hover {
+    display: block;
+}
+
+.dropdown-content a {
+    padding: 0.75rem 1.25rem;
+    display: block;
+    white-space: nowrap;
+    color: var(--secondary);
+    text-decoration: none;
+}
+
+.dropdown-content a:hover {
+    background: var(--background);
+    padding-left: 1.5rem;
+    color: var(--primary);
+}
+
+@keyframes dropdownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-shrink: 0;
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+    height: 50px;
+    background: var(--background);
+    border-radius: 20px;
+    padding: 0.4rem 0.75rem;
+    max-width: 220px;
+    border: 2px solid transparent;
+}
+
+.search-bar:focus-within {
+    border-color: var(--secondary);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+}
+
+.search-bar input {
+    border: none;
+    background: none;
+    padding: 0.25rem;
+    width: 100%;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.search-bar input::placeholder {
+    color: var(--secondary);
+    opacity: 0.7;
+}
+
+.search-bar input:focus {
+    outline: none;
+}
+
+.search-bar button {
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    color: var(--secondary);
+}
+
+.search-bar button:hover {
+    color: var(--primary);
+    transform: scale(1.1);
+}
+
+.logout-btn {
+    border-radius: 50%;
+    background: var(--background);
+}
+
+.logout-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    background: var(--card-bg);
+}
+
+.logout-btn img {
+    height: 1.5rem;
+    filter: invert(18%) sepia(19%) saturate(1023%) hue-rotate(333deg) brightness(94%) contrast(87%);
+}
+
+.logout-btn:hover img {
+    transform: rotate(360deg);
+    transition: transform 0.5s ease;
+}
+
+@media (max-width: 768px) {
+    .navbar {
+        padding: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .nav-center {
+        order: 3;
+        width: 100%;
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding: 1rem 0 0;
+        gap: 1.25rem;
+    }
+
+    .nav-center::-webkit-scrollbar {
+        height: 3px;
+    }
+
+    .nav-center::-webkit-scrollbar-thumb {
+        background: var(--secondary);
+        border-radius: 3px;
+    }
+
+    .nav-right {
+        gap: 0.75rem;
+    }
+
+    .dropdown-content {
+        left: 0;
+        transform: none;
+    }
+
+    .dropdown:hover .dropdown-btn {
+        transform: none;
+    }
+
+    .navbar {
+        flex-direction: column;
+        padding: 1rem;
+    }
+
+    .navbar > div {
+        margin-bottom: 1rem;
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .dropdown-content {
+        width: 100%;
+        position: static;
+        box-shadow: none;
+    }
+}
