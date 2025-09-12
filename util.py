@@ -3,9 +3,10 @@ import requests
 from flask_sqlalchemy import SQLAlchemy
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
+import os
 
-GOOGLE_API_KEY="AIzaSyBu58B_1R5bMqUje7lbpFi-qR8WslABVHk"
-NYT_API_KEY="sM41gAH1cpXDT9vWpwGQFqefZKG4sreP"
+NYT_API_KEY = os.getenv('NYT_API_KEY')
+GOOGLE_API_KEY = os.getenv('GOOGLE_API_KEY')
 
 def clean_cover_url(url):
     if url:
