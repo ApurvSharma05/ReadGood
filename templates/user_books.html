@@ -1,32 +1,418 @@
 {% extends "base.html" %}
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}" />
+<style>
+    /* Enhanced Book Grid Styles for My Books Page */
+
+    /* Books Container */
+    .books-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: clamp(1.5rem, 4vw, 2.5rem);
+        padding: clamp(1rem, 4vw, 2rem);
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Individual Book Card */
+    .card {
+        background: var(--card-bg);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .card:hover {
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--primary);
+    }
+
+    /* Book Cover Container */
+    .cover {
+        position: relative;
+        height: 380px;
+        overflow: hidden;
+        background: linear-gradient(135deg, #f5f5f5, #e8e8e8);
+    }
+
+    .cover-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card:hover .cover-image {
+        transform: scale(1.05);
+    }
+
+    /* Overlay for better text visibility */
+    .cover::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 40%;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.4), transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .card:hover .cover::after {
+        opacity: 1;
+    }
+
+    /* Book Information */
+    .card h3 {
+        font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 1.5rem 1.5rem 0.8rem;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .card .author {
+        color: var(--text-secondary);
+        font-size: clamp(0.9rem, 1.8vw, 1rem);
+        font-weight: 500;
+        margin: 0 1.5rem 1rem;
+        opacity: 0.8;
+    }
+
+    /* Button Container */
+    .button-container {
+        display: flex;
+        padding: 1.5rem;
+        gap: 1rem;
+        align-items: center;
+        background: linear-gradient(to top, var(--card-bg), rgba(255, 255, 255, 0.95));
+    }
+
+    /* Action Buttons */
+    .btn {
+        flex: 1;
+        padding: 0.9rem 1.2rem;
+        background: var(--primary);
+        color: var(--card-bg);
+        border: 2px solid transparent;
+        border-radius: 12px;
+        text-decoration: none;
+        font-size: clamp(0.85rem, 1.8vw, 0.95rem);
+        font-weight: 600;
+        text-align: center;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+
+    .btn:hover::before {
+        left: 100%;
+    }
+
+    .btn:hover {
+        background: var(--card-bg);
+        color: var(--primary);
+        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+    }
+
+    /* Icon Button (Trash) */
+    .fa {
+        color: var(--primary);
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+        background: var(--background);
+    }
+
+    .fa:hover {
+        background: var(--card-bg);
+        color: var(--primary);
+        border-color: var(--primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .fa-trash:hover {
+        background: #dc3545;
+        color: white;
+        border-color: #dc3545;
+    }
+
+    /* Loading Animation */
+    @keyframes cardEntrance {
+        from {
+            opacity: 0;
+            transform: scale(0.95) translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    .card {
+        animation: cardEntrance 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        animation-delay: calc(var(--card-index, 0) * 100ms);
+    }
+
+    /* No Books Message */
+    .no-books {
+        text-align: center;
+        padding: clamp(3rem, 8vw, 5rem) 2rem;
+        background: var(--card-bg);
+        border-radius: 24px;
+        box-shadow: var(--shadow-md);
+        margin: 2rem auto;
+        max-width: 600px;
+        border: 2px dashed var(--secondary);
+    }
+
+    .no-books h2 {
+        font-size: clamp(1.5rem, 4vw, 2rem);
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+        font-weight: 700;
+    }
+
+    .no-books p {
+        color: var(--text-secondary);
+        font-size: clamp(1rem, 2.5vw, 1.1rem);
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .no-books .btn {
+        display: inline-block;
+        width: auto;
+        min-width: 200px;
+    }
+
+    /* Genre/Title/Author Highlights */
+    .genre-highlight,
+    .title-highlight,
+    .author-highlight {
+        color: var(--primary);
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 1200px) {
+        .books-container {
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 2rem;
+        }
+
+        .cover {
+            height: 340px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .books-container {
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem;
+        }
+
+        .cover {
+            height: 320px;
+        }
+
+        .button-container {
+            flex-direction: column;
+            gap: 0.8rem;
+            padding: 1.2rem;
+        }
+
+        .btn,
+        .fa {
+            width: 100%;
+            min-height: 48px;
+        }
+
+        .fa {
+            max-width: 60px;
+            margin: 0 auto;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .books-container {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            padding: 0.5rem;
+        }
+
+        .cover {
+            height: 280px;
+        }
+
+        .card h3 {
+            font-size: 1rem;
+            margin: 1rem 1rem 0.5rem;
+        }
+
+        .card .author {
+            font-size: 0.85rem;
+            margin: 0 1rem 0.8rem;
+        }
+
+        .button-container {
+            padding: 1rem;
+        }
+    }
+
+    /* Extra small screens */
+    @media (max-width: 360px) {
+        .books-container {
+            grid-template-columns: 1fr 1fr;
+            gap: 0.8rem;
+        }
+
+        .cover {
+            height: 240px;
+        }
+
+        .card h3 {
+            font-size: 0.9rem;
+            -webkit-line-clamp: 1;
+            line-clamp: 1;
+        }
+
+        .card .author {
+            font-size: 0.8rem;
+        }
+
+        .btn {
+            font-size: 0.75rem;
+            padding: 0.7rem 0.8rem;
+        }
+    }
+
+    /* High contrast mode */
+    @media (prefers-contrast: high) {
+        .card {
+            border: 3px solid var(--primary);
+        }
+
+        .btn,
+        .fa {
+            border-width: 3px;
+        }
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+
+        .card,
+        .card *,
+        .btn,
+        .fa {
+            animation: none !important;
+            transition: none !important;
+        }
+
+        .card:hover {
+            transform: none;
+        }
+
+        .card:hover .cover-image {
+            transform: none;
+        }
+    }
+
+    /* Print styles */
+    @media print {
+        .books-container {
+            display: block;
+            columns: 2;
+            column-gap: 2rem;
+        }
+
+        .card {
+            break-inside: avoid;
+            margin-bottom: 1rem;
+            box-shadow: none;
+            border: 2px solid #000;
+        }
+
+        .button-container {
+            display: none;
+        }
+
+        .cover {
+            height: 200px;
+        }
+    }
+</style>
 <div class="book-app">
     <div class="header">
         <h1>My Favourites</h1>
     </div>
     {% if books %}
-        <div class="books-container">
-            {% for book in books %}
-                <div class="card">
-                    <div class="cover">
-                        <img src="{{ book.cover_url }}" alt="Cover image of {{ book.title }}" class="cover-image">
-                    </div>
-                    <h3>{{ book.title }}</h3>
-                    <p class="author">By {{ book.author }}</p>
-                    <div class="button-container">
-                        <a href="{{ book.more_info_link }}"  class="btn">Learn More</a>
-                        <form action="{{ url_for('remove_book', book_id=book.id) }}" method="POST" style="margin: 0;">
-                            <button type="submit" title="Remove from list" class="fa fa-trash" style="color: red;"></button>
-                        </form>
-                    </div>
-                </div>
-                {% endfor %}
+    <div class="books-container">
+        {% for book in books %}
+        <div class="card">
+            <div class="cover">
+                <img src="{{ book.cover_url }}" alt="Cover image of {{ book.title }}" class="cover-image">
             </div>
-            <a href="{{ url_for('home') }}" class="back-link">Back to Home</a>
-            {% else %}
-            <div class="no-books">
-                <p>No books in your favourites yet. Start adding some!</p>
+            <h3>{{ book.title }}</h3>
+            <p class="author">By {{ book.author }}</p>
+            <div class="button-container">
+                <a href="{{ book.more_info_link }}" class="btn">Learn More</a>
+                <form action="{{ url_for('remove_book', book_id=book.id) }}" method="POST" style="margin: 0;">
+                    <button type="submit" title="Remove from list" class="fa fa-trash" style="color: red;"></button>
+                </form>
             </div>
-            {% endif %}
-        {% endblock %}
+        </div>
+        {% endfor %}
+    </div>
+    <a href="{{ url_for('home') }}" class="back-link">Back to Home</a>
+    {% else %}
+    <div class="no-books">
+        <p>No books in your favourites yet. Start adding some!</p>
+    </div>
+    {% endif %}
+    {% endblock %}
