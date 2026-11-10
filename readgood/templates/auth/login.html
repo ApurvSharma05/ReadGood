@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<div class="auth">
+  <section class="auth-form">
+    <div class="inner">
+      <p class="kicker"><span class="dot"></span>Welcome back</p>
+      <h1 class="display">Sign <em>in.</em></h1>
+      <p class="lede">Pick up where you left off.</p>
+
+      <form action="{{ url_for('auth.login') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+        {% if error %}<div class="form-alert" role="alert"><i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ error }}</div>{% endif %}
+        <div class="mb-3">
+          <label class="form-label" for="username">Username</label>
+          <input class="form-control" type="text" id="username" name="username" value="{{ username }}" autocomplete="username" autocapitalize="none" spellcheck="false" required {{ 'autofocus' if not username }}>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="password">Password</label>
+          <div class="pw-wrap">
+            <input class="form-control" type="password" id="password" name="password" autocomplete="current-password" required {{ 'autofocus' if username }}>
+            <button class="icon-btn pw-toggle" type="button" data-pw-toggle="password" aria-label="Show password"><i class="bi bi-eye" aria-hidden="true"></i></button>
+          </div>
+        </div>
+        <button class="btn btn-ink" type="submit">Sign in</button>
+      </form>
+
+      <p class="auth-switch">New to ReadGood? <a href="{{ url_for('auth.register', next=next_url) }}">Create an account</a></p>
+    </div>
+  </section>
+  {% include "auth/_art.html" %}
+</div>
+{% endblock %}

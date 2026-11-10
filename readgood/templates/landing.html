@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% from "_macros.html" import rail, cover, book_url with context %}
+{% block title %}Find your next favourite book{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="kicker"><span class="dot"></span>Book discovery, made personal</p>
+      <h1 class="display">Read something <em>good</em> <span class="mark">next.</span></h1>
+      <p class="lede">This week's bestsellers, millions of titles to search, shelves to track your reading, and recommendations shaped by what you actually enjoyed.</p>
+      <div class="hero-cta">
+        <a class="btn btn-ink btn-lg" href="{{ url_for('auth.register') }}">Start your library</a>
+        <a class="btn btn-line btn-lg" href="{{ url_for('main.home') }}">Browse books</a>
+      </div>
+      <p class="hero-note">Free. No ads. Just books.</p>
+    </div>
+
+    {% if featured %}
+    <a class="feature-card" href="{{ book_url(featured) }}">
+      {{ cover(featured.cover_url, featured.title, featured.author, eager=True) }}
+      <div>
+        <span class="big-rank" aria-hidden="true">01</span>
+        <p class="kicker"><span class="dot"></span>{{ 'No. 1 this week' if featured.rank else 'Trending now' }}</p>
+        <h2>{{ featured.title }}</h2>
+        <p>{{ featured.author }}</p>
+      </div>
+    </a>
+    {% endif %}
+  </div>
+</section>
+
+{% if wall %}
+<section class="wrap" aria-label="Popular covers">
+  <div class="cover-wall">
+    {% for book in wall[:7] %}
+    <a class="cover" href="{{ book_url(book) }}" aria-label="{{ book.title }} by {{ book.author }}">
+      <div class="cover-fallback" aria-hidden="true"><b>{{ book.title }}</b></div>
+      <img src="{{ book.cover_url }}" alt="" loading="lazy" decoding="async" width="200" height="300">
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="wrap section" aria-label="How ReadGood works">
+  <div class="steps">
+    <div class="step">
+      <span class="num">01</span>
+      <h3>Discover</h3>
+      <p>Fresh New York Times bestseller lists, books trending today and fourteen genres to wander through.</p>
+    </div>
+    <div class="step">
+      <span class="num">02</span>
+      <h3>Track</h3>
+      <p>Shelve books as Want to read, Reading or Read. Rate them, keep private notes, set a yearly goal.</p>
+    </div>
+    <div class="step">
+      <span class="num">03</span>
+      <h3>Get picks</h3>
+      <p>Recommendations built from the authors and genres you rate highly, each with the reason it was chosen.</p>
+    </div>
+  </div>
+</section>
+
+<div class="wrap section">
+  {% for shelf in shelves %}{{ rail(shelf, link=url_for('main.home'), link_label='Discover more') }}{% endfor %}
+</div>
+
+<section class="wrap section page" style="padding-top:0">
+  <div class="cta-band">
+    <div>
+      <h2>Your next favourite is <em>out there.</em></h2>
+      <p>Create a free account and we will start learning what you like.</p>
+    </div>
+    <a class="btn btn-accent btn-lg" href="{{ url_for('auth.register') }}">Create an account</a>
+  </div>
+</section>
+{% endblock %}

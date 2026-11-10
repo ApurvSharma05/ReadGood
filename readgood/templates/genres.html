@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Genres{% endblock %}
+
+{% block content %}
+<div class="wrap page">
+  <header class="page-head">
+    <div>
+      <p class="kicker"><span class="dot"></span>Browse</p>
+      <h1 class="display">Pick a <em>shelf.</em></h1>
+      <p class="lede">Fourteen genres, from comfort reads to the ones that keep you up at night.</p>
+    </div>
+  </header>
+
+  <div class="genre-grid">
+    {% for slug, genre in genres.items() %}
+    <a class="genre-tile tint-{{ (loop.index0 % 7) + 1 }}" href="{{ url_for('main.genre', slug=slug) }}">
+      <i class="bi {{ genre[2] }}" aria-hidden="true"></i>
+      <i class="bi bi-arrow-up-right arrow" aria-hidden="true"></i>
+      <span>{{ genre[0] }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% from "_macros.html" import rail, cover, save_fields, star_input with context %}
+{% block title %}{{ book.title }} by {{ book.author }}{% endblock %}
+{% block description %}{{ (book.description or book.title ~ ' by ' ~ book.author) | truncate(155) }}{% endblock %}
+
+{% set shelf_icons = {'want': 'bi-bookmark', 'reading': 'bi-book-half', 'read': 'bi-check2-circle'} %}
+
+{% block content %}
+<div class="detail-hero">
+  {% if book.cover_url != default_cover %}<div class="backdrop" style="background-image:url('{{ book.cover_url }}')" aria-hidden="true"></div>{% endif %}
+  <div class="wrap">
+    <div class="detail">
+      <aside class="detail-aside">
+        {{ cover(book.cover_url, book.title, book.author, eager=True) }}
+      </aside>
+
+      <article>
+        {% if book.rank %}
+        <p class="kicker"><span class="dot"></span>#{{ book.rank }} on the New York Times list{% if book.weeks_on_list %} · {{ book.weeks_on_list }} week{{ 's' if book.weeks_on_list != 1 }}{% endif %}</p>
+        {% elif book.categories %}
+        <p class="kicker"><span class="dot"></span>{{ book.categories[0] }}</p>
+        {% endif %}
+        <h1 class="display">{{ book.title }}</h1>
+        <p class="by">by
+          {% for name in book.authors %}<a href="{{ url_for('main.author', name=name) }}">{{ name }}</a>{{ ', ' if not loop.last }}{% else %}{{ book.author }}{% endfor %}
+        </p>
+
+        {% set has_facts = book.rating or book.year or book.page_count or book.publisher %}
+        {% if has_facts %}
+        <dl class="facts">
+          {% if book.rating %}<div><dt>Rating</dt><dd><i class="bi bi-star-fill" aria-hidden="true"></i> {{ book.rating }}{% if book.ratings_count %} <span class="muted">({{ '{:,}'.format(book.ratings_count) }})</span>{% endif %}</dd></div>{% endif %}
+          {% if book.year %}<div><dt>Published</dt><dd>{{ book.year }}</dd></div>{% endif %}
+          {% if book.page_count %}<div><dt>Pages</dt><dd>{{ book.page_count }}</dd></div>{% endif %}
+          {% if book.publisher %}<div><dt>Publisher</dt><dd>{{ book.publisher }}</dd></div>{% endif %}
+        </dl>
+        {% else %}<div style="height:24px"></div>{% endif %}
+
+        <section class="shelf-card" aria-label="Your shelf">
+          {% if entry %}
+          <form action="{{ url_for('library.update', entry_id=entry.id) }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <p class="kicker">On your shelf</p>
+            <div class="shelf-picker" role="group" aria-label="Shelf">
+              {% for value, label in statuses.items() %}
+              <button type="submit" name="status" value="{{ value }}" class="{{ 'is-current' if entry.status == value }}" aria-pressed="{{ 'true' if entry.status == value else 'false' }}">
+                <i class="bi {{ shelf_icons[value] }}" aria-hidden="true"></i>{{ label }}
+              </button>
+              {% endfor %}
+            </div>
+          </form>
+          <form class="shelf-row" action="{{ url_for('library.update', entry_id=entry.id) }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="d-flex align-items-center gap-2">
+              <span class="form-label mb-0">Your rating</span>
+              {{ star_input(entry, 'detail') }}
+              {% if entry.rating %}<button class="stars-clear" type="submit" name="rating" value="">Clear</button>{% endif %}
+            </div>
+            <noscript><button class="btn btn-line btn-sm" type="submit">Save rating</button></noscript>
+          </form>
+          <form class="shelf-row d-block" action="{{ url_for('library.update', entry_id=entry.id) }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label class="form-label" for="notes">Private notes</label>
+            <textarea class="form-control" id="notes" name="notes" rows="3" maxlength="2000" placeholder="What stayed with you?">{{ entry.notes or '' }}</textarea>
+            <div class="d-flex flex-wrap justify-content-between gap-2 mt-3">
+              <button class="btn btn-ink btn-sm" type="submit">Save note</button>
+              <button class="btn btn-text btn-danger-text btn-sm" type="submit" formaction="{{ url_for('library.remove', entry_id=entry.id) }}"><i class="bi bi-trash3" aria-hidden="true"></i>Remove from library</button>
+            </div>
+          </form>
+          {% else %}
+          <form action="{{ url_for('library.add') }}" method="post">
+            {{ save_fields(book) }}
+            <p class="kicker">Add to your library</p>
+            <div class="shelf-picker" role="group" aria-label="Choose a shelf">
+              {% for value, label in statuses.items() %}
+              <button type="submit" name="status" value="{{ value }}"><i class="bi {{ shelf_icons[value] }}" aria-hidden="true"></i>{{ label }}</button>
+              {% endfor %}
+            </div>
+          </form>
+          {% endif %}
+        </section>
+
+        {% if book.description %}
+        <section aria-labelledby="about-title">
+          <h2 id="about-title" class="section-title">About the book</h2>
+          <div class="prose" id="description" data-clamp>{{ book.description }}</div>
+          <button class="btn btn-text btn-sm px-0 mt-2" type="button" data-clamp-toggle="description" aria-controls="description" aria-expanded="false" hidden>Read more</button>
+        </section>
+        {% endif %}
+
+        {% if book.categories|length > (1 if not book.rank else 0) %}
+        <div class="chips mt-4">
+          {% for category in book.categories %}
+          <a class="chip chip-sm" href="{{ url_for('main.search', q='subject:"' ~ category ~ '"') }}">{{ category }}</a>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="link-row">
+          {% if book.external_url %}
+          <a class="btn btn-line btn-sm" href="{{ book.external_url }}" target="_blank" rel="noopener noreferrer">{{ book.external_label }}<i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
+          {% endif %}
+          {% if book.buy_url %}
+          <a class="btn btn-line btn-sm" href="{{ book.buy_url }}" target="_blank" rel="noopener noreferrer">Find a copy<i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
+          {% endif %}
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
+
+{% if shelves %}
+<div class="wrap page">
+  {% for shelf in shelves %}{{ rail(shelf) }}{% endfor %}
+</div>
+{% endif %}
+{% endblock %}

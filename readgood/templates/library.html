@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% from "_macros.html" import cover, empty_state, star_input with context %}
+{% block title %}Library{% endblock %}
+
+{% block content %}
+<div class="wrap page">
+  <header class="page-head">
+    <div>
+      <p class="kicker"><span class="dot"></span>Library</p>
+      <h1 class="display">Your <em>shelves.</em></h1>
+    </div>
+    <a class="btn btn-line d-none d-md-inline-flex" href="{{ url_for('main.recommendations') }}"><i class="bi bi-stars" aria-hidden="true"></i>Recommendations</a>
+  </header>
+
+  <section class="bento" aria-label="Reading summary">
+    <div class="tile tile-goal">
+      {% if stats.goal %}
+      <div class="goal-ring" style="--p: {{ stats.goal_percent }}" role="img" aria-label="{{ stats.goal_percent }}% of your reading goal">
+        <span>{{ stats.goal_percent }}%</span>
+      </div>
+      {% else %}
+      <div class="goal-ring" style="--p: 0" aria-hidden="true"><span><i class="bi bi-flag"></i></span></div>
+      {% endif %}
+      <div class="grow">
+        <span class="label">{{ stats.year }} reading goal</span>
+        <span class="value">{{ stats.read_this_year }}<small>{% if stats.goal %}of {{ stats.goal }} books{% else %}read this year{% endif %}</small></span>
+        <form class="goal-edit" action="{{ url_for('library.set_goal') }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label class="visually-hidden" for="goal">Books to read in {{ stats.year }}</label>
+          <input class="form-control" type="number" id="goal" name="goal" min="1" max="500" inputmode="numeric" placeholder="Goal" value="{{ stats.goal or '' }}">
+          <button class="btn btn-sm" type="submit">{{ 'Update' if stats.goal else 'Set goal' }}</button>
+        </form>
+      </div>
+    </div>
+    <div class="tile"><span class="label">Want to read</span><span class="value">{{ stats.counts.want }}</span></div>
+    <div class="tile"><span class="label">Reading</span><span class="value">{{ stats.counts.reading }}</span></div>
+    <div class="tile"><span class="label">Read</span><span class="value">{{ stats.counts.read }}</span></div>
+    <div class="tile"><span class="label">Avg rating</span><span class="value">{% if stats.average_rating %}{{ stats.average_rating }}<i class="bi bi-star-fill" aria-hidden="true"></i>{% else %}<span class="muted">–</span>{% endif %}</span></div>
+  </section>
+
+  {% if stats.total %}
+  <div class="toolbar">
+    <nav class="segmented" aria-label="Shelves">
+      <a href="{{ url_for('library.index', sort=sort if sort != 'recent' else None) }}" {{ 'aria-current=true' if shelf == 'all' }}>All <span class="count">{{ stats.total }}</span></a>
+      {% for value, label in statuses.items() %}
+      <a href="{{ url_for('library.index', shelf=value, sort=sort if sort != 'recent' else None) }}" {{ 'aria-current=true' if shelf == value }}>{{ label }} <span class="count">{{ stats.counts[value] }}</span></a>
+      {% endfor %}
+    </nav>
+    <form class="sort-form" action="{{ url_for('library.index') }}" method="get">
+      {% if shelf != 'all' %}<input type="hidden" name="shelf" value="{{ shelf }}">{% endif %}
+      <label for="sort">Sort</label>
+      <select class="form-select form-select-sm" id="sort" name="sort" data-autosubmit>
+        {% for value, label in sorts.items() %}
+        <option value="{{ value }}" {{ 'selected' if value == sort }}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <noscript><button class="btn btn-line btn-sm" type="submit">Apply</button></noscript>
+    </form>
+  </div>
+  {% endif %}
+
+  {% if entries %}
+  <ul class="entries">
+    {% for entry in entries %}
+    {% set book = entry.book %}
+    {% if book.source and book.source_id %}
+      {% set href = url_for('main.book_detail', source=book.source, source_id=book.source_id) %}
+    {% else %}
+      {% set href = url_for('main.search', q=book.title) %}
+    {% endif %}
+    <li class="entry">
+      <a href="{{ href }}" tabindex="-1" aria-hidden="true">{{ cover(book.cover_url, book.title) }}</a>
+      <div style="min-width:0">
+        <h2 class="entry-title"><a href="{{ href }}">{{ book.title }}</a></h2>
+        <p class="entry-sub">{{ book.author }}{% if book.year %} · {{ book.year }}{% endif %}</p>
+
+        <form class="entry-controls" action="{{ url_for('library.update', entry_id=entry.id) }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <label class="visually-hidden" for="status-{{ entry.id }}">Shelf for {{ book.title }}</label>
+          <select class="form-select form-select-sm status-pill s-{{ entry.status }}" id="status-{{ entry.id }}" name="status" data-autosubmit>
+            {% for value, label in statuses.items() %}
+            <option value="{{ value }}" {{ 'selected' if entry.status == value }}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          {{ star_input(entry) }}
+          <noscript><button class="btn btn-line btn-sm" type="submit">Save</button></noscript>
+        </form>
+
+        <details class="entry-note">
+          <summary>
+            <i class="bi {{ 'bi-journal-text' if entry.notes else 'bi-plus-lg' }}" aria-hidden="true"></i>
+            {% if entry.notes %}<span class="note-preview">“{{ entry.notes | truncate(90) }}”</span><span class="visually-hidden"> Edit note</span>{% else %}Add a note{% endif %}
+          </summary>
+          <form action="{{ url_for('library.update', entry_id=entry.id) }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label class="visually-hidden" for="notes-{{ entry.id }}">Notes on {{ book.title }}</label>
+            <textarea class="form-control" id="notes-{{ entry.id }}" name="notes" rows="2" maxlength="2000" placeholder="Only you can see this.">{{ entry.notes or '' }}</textarea>
+            <button class="btn btn-ink btn-sm" type="submit">Save note</button>
+          </form>
+        </details>
+      </div>
+      <div class="entry-actions">
+        <form action="{{ url_for('library.remove', entry_id=entry.id) }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="icon-btn" type="submit" aria-label="Remove {{ book.title }} from your library" title="Remove"><i class="bi bi-trash3" aria-hidden="true"></i></button>
+        </form>
+        {% if entry.status == 'read' and entry.finished_at %}<span class="finished">Read {{ entry.finished_at.strftime('%b %Y') }}</span>{% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% elif stats.total %}
+    {{ empty_state('bi-inbox', 'Nothing on this shelf', 'Move a book here by changing its shelf.',
+                   url_for('library.index'), 'Show all books') }}
+  {% else %}
+    {{ empty_state('bi-bookmarks', 'Your library is empty',
+                   'Tap the bookmark on any cover to save it here. Then track, rate and get picks.',
+                   url_for('main.home'), 'Discover books') }}
+  {% endif %}
+</div>
+{% endblock %}

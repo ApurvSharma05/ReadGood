@@ -1,0 +1,25 @@
+# Render blueprint: one web service and one Postgres database.
+# In the Render dashboard choose New > Blueprint and pick this repository.
+services:
+  - type: web
+    name: readgood
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app -c gunicorn.conf.py
+    healthCheckPath: /healthz
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: NYT_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: readgood-db
+          property: connectionString
+
+databases:
+  - name: readgood-db

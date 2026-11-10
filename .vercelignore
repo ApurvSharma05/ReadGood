@@ -1,0 +1,22 @@
+# Never upload secrets or local data
+.env
+.env.*
+instance/
+*.db
+
+# Not needed to run the app
+.venv/
+venv/
+env/
+__pycache__/
+.pytest_cache/
+tests/
+.github/
+.claude/
+Dockerfile
+.dockerignore
+Procfile
+render.yaml
+gunicorn.conf.py
+requirements-dev.txt
+pytest.ini

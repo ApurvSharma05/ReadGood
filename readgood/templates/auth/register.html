@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Create an account{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<div class="auth">
+  <section class="auth-form">
+    <div class="inner">
+      <p class="kicker"><span class="dot"></span>Free forever</p>
+      <h1 class="display">Start your <em>library.</em></h1>
+      <p class="lede">Save books, track your reading and get picks made for you.</p>
+
+      <form action="{{ url_for('auth.register') }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+        {% if error %}<div class="form-alert" role="alert"><i class="bi bi-exclamation-circle" aria-hidden="true"></i>{{ error }}</div>{% endif %}
+        <div class="mb-3">
+          <label class="form-label" for="username">Username</label>
+          <input class="form-control" type="text" id="username" name="username" value="{{ form.username }}" autocomplete="username" autocapitalize="none" spellcheck="false" required minlength="3" maxlength="30" pattern="[A-Za-z0-9_]+" aria-describedby="username-help" autofocus>
+          <div class="form-text" id="username-help">3–30 letters, numbers or underscores.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="email">Email</label>
+          <input class="form-control" type="email" id="email" name="email" value="{{ form.email }}" autocomplete="email" required maxlength="120">
+        </div>
+        <div class="mb-3">
+          <label class="form-label" for="password">Password</label>
+          <div class="pw-wrap">
+            <input class="form-control" type="password" id="password" name="password" autocomplete="new-password" required minlength="8" aria-describedby="password-help">
+            <button class="icon-btn pw-toggle" type="button" data-pw-toggle="password" aria-label="Show password"><i class="bi bi-eye" aria-hidden="true"></i></button>
+          </div>
+          <div class="form-text" id="password-help">At least 8 characters.</div>
+        </div>
+        <button class="btn btn-ink" type="submit">Create account</button>
+      </form>
+
+      <p class="auth-switch">Already have an account? <a href="{{ url_for('auth.login', next=next_url) }}">Sign in</a></p>
+    </div>
+  </section>
+  {% include "auth/_art.html" %}
+</div>
+{% endblock %}

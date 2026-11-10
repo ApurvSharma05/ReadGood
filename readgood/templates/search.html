@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% from "_macros.html" import book_grid, empty_state with context %}
+{% block title %}{% if query %}“{{ query }}”{% else %}Search{% endif %}{% endblock %}
+
+{% block content %}
+<div class="wrap page">
+  <header class="page-head" style="display:block">
+    <p class="kicker"><span class="dot"></span>Search</p>
+    <h1 class="display">{% if query %}Results for <em>“{{ query }}”</em>{% else %}Find a <em>book.</em>{% endif %}</h1>
+  </header>
+
+  <form class="search-hero" action="{{ url_for('main.search') }}" method="get" role="search">
+    <i class="bi bi-search" aria-hidden="true"></i>
+    <input type="search" name="q" value="{{ query }}" placeholder="Title, author or ISBN" aria-label="Search books" maxlength="100" enterkeyhint="search" {{ 'autofocus' if not query }}>
+    {% if query and sort != 'relevance' %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+    <button class="btn btn-ink" type="submit">Search</button>
+  </form>
+
+  {% if books %}
+  <div class="results-bar">
+    <p class="mb-0 muted mono" style="font-size:.85rem">{{ '{:,}'.format(total) }} result{{ 's' if total != 1 }}{% if last_page > 1 %} · page {{ page }} of {{ last_page }}{% endif %}</p>
+    <nav class="segmented" aria-label="Sort results">
+      {% for value, label in sorts.items() %}
+      <a href="{{ url_for('main.search', q=query, sort=value if value != 'relevance' else None) }}" {{ 'aria-current=true' if value == sort }}>{{ label }}</a>
+      {% endfor %}
+    </nav>
+  </div>
+
+  {{ book_grid(books) }}
+
+  {% if last_page > 1 %}
+  <nav class="pager" aria-label="Result pages">
+    {% if page > 1 %}
+    <a class="btn btn-line" href="{{ url_for('main.search', q=query, sort=sort if sort != 'relevance' else None, page=page - 1) }}" rel="prev"><i class="bi bi-arrow-left" aria-hidden="true"></i>Previous</a>
+    {% endif %}
+    <span class="mono">{{ page }} / {{ last_page }}</span>
+    {% if page < last_page %}
+    <a class="btn btn-line" href="{{ url_for('main.search', q=query, sort=sort if sort != 'relevance' else None, page=page + 1) }}" rel="next">Next<i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+    {% endif %}
+  </nav>
+  {% endif %}
+
+  {% elif query %}
+    {{ empty_state('bi-search', 'No books found',
+                   'Check the spelling, or try just the author or a shorter part of the title.',
+                   url_for('main.genres'), 'Browse genres instead') }}
+  {% else %}
+  <section class="section" style="margin-top:40px" aria-labelledby="popular-searches">
+    <p class="kicker" id="popular-searches">Popular searches</p>
+    <div class="chips">
+      {% for term in ['Dune', 'Pride and Prejudice', 'Brandon Sanderson', 'Sally Rooney', 'The Midnight Library', 'Toni Morrison', 'Project Hail Mary', 'Agatha Christie'] %}
+      <a class="chip" href="{{ url_for('main.search', q=term) }}">{{ term }}</a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

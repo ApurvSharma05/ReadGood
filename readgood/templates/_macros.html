@@ -1,0 +1,101 @@
+{# Shared building blocks. Import with:  {% from "_macros.html" import ... with context %} #}
+
+{% macro book_url(book) -%}
+{{ url_for('main.book_detail', source=book.source, source_id=book.source_id) }}
+{%- endmacro %}
+
+{# A book jacket. Shows the title on a tinted card when no image exists or it fails to load. #}
+{% macro cover(src, title, author='', eager=False) %}
+<div class="cover">
+  <div class="cover-fallback" aria-hidden="true"><b>{{ title }}</b>{% if author %}<small>{{ author }}</small>{% endif %}</div>
+  {% if src and src != default_cover %}
+  <img src="{{ src }}" alt="" {{ '' if eager else 'loading=lazy' }} decoding="async" width="200" height="300">
+  {% endif %}
+  {{ caller() if caller }}
+</div>
+{% endmacro %}
+
+{% macro save_fields(book) %}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<input type="hidden" name="source" value="{{ book.source }}">
+<input type="hidden" name="source_id" value="{{ book.source_id }}">
+<input type="hidden" name="title" value="{{ book.title }}">
+<input type="hidden" name="author" value="{{ book.author }}">
+<input type="hidden" name="cover_url" value="{{ book.cover_url }}">
+<input type="hidden" name="categories" value="{{ book.categories | join('|') }}">
+<input type="hidden" name="year" value="{{ book.year or '' }}">
+{% endmacro %}
+
+{% macro save_button(book) %}
+{% set status = saved_status(book) %}
+<form class="save js-save" action="{{ url_for('library.add') }}" method="post">
+  {{ save_fields(book) }}
+  <button class="save-btn {{ 'is-saved' if status }}" type="submit"
+          aria-label="{{ 'In your library: ' ~ statuses[status] if status else 'Save ' ~ book.title ~ ' to your library' }}"
+          title="{{ statuses[status] if status else 'Save to library' }}">
+    <i class="bi {{ 'bi-bookmark-check-fill' if status else 'bi-bookmark-plus' }}" aria-hidden="true"></i>
+  </button>
+</form>
+{% endmacro %}
+
+{% macro book_card(book, eager=False) %}
+<article class="book">
+  {% call cover(book.cover_url, book.title, book.author, eager) %}
+    <a href="{{ book_url(book) }}" tabindex="-1" aria-hidden="true"></a>
+    {% if book.rank %}<span class="rank" title="Rank on this week's list">#{{ book.rank }}</span>{% endif %}
+    {{ save_button(book) }}
+  {% endcall %}
+  <div class="book-info">
+    <h3 class="book-title"><a href="{{ book_url(book) }}">{{ book.title }}</a></h3>
+    <p class="book-sub">{{ book.author }}{% if book.year and not book.rank %} · {{ book.year }}{% endif %}</p>
+    {% if book.reason %}
+    <p class="book-why"><i class="bi bi-stars" aria-hidden="true"></i><span>{{ book.reason }}</span></p>
+    {% elif book.rating %}
+    <p class="book-stars"><i class="bi bi-star-fill" aria-hidden="true"></i> {{ book.rating }}<span class="visually-hidden"> out of 5</span></p>
+    {% endif %}
+  </div>
+</article>
+{% endmacro %}
+
+{% macro rail(shelf, link=None, link_label='See all') %}
+<section class="rail-block" aria-labelledby="rail-{{ shelf.id }}-title">
+  <header class="rail-head">
+    <div>
+      <h2 id="rail-{{ shelf.id }}-title">{{ shelf.title }}</h2>
+      {% if shelf.subtitle %}<p>{{ shelf.subtitle }}</p>{% endif %}
+    </div>
+    <div class="rail-nav">
+      {% if link %}<a class="btn btn-text btn-sm" href="{{ link }}">{{ link_label }} <i class="bi bi-arrow-right" aria-hidden="true"></i></a>{% endif %}
+      <button class="icon-btn ring" type="button" data-rail-prev="rail-{{ shelf.id }}" aria-label="Scroll {{ shelf.title }} back"><i class="bi bi-arrow-left" aria-hidden="true"></i></button>
+      <button class="icon-btn ring" type="button" data-rail-next="rail-{{ shelf.id }}" aria-label="Scroll {{ shelf.title }} forward"><i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+    </div>
+  </header>
+  <div class="rail" id="rail-{{ shelf.id }}" tabindex="0" role="group" aria-label="{{ shelf.title }}">
+    {% for book in shelf.books %}{{ book_card(book) }}{% endfor %}
+  </div>
+</section>
+{% endmacro %}
+
+{% macro book_grid(books) %}
+<div class="grid-books">
+  {% for book in books %}{{ book_card(book, eager=loop.index <= 6) }}{% endfor %}
+</div>
+{% endmacro %}
+
+{% macro empty_state(icon, title, text, action_url=None, action_label=None) %}
+<div class="empty">
+  <div class="empty-icon"><i class="bi {{ icon }}" aria-hidden="true"></i></div>
+  <h2>{{ title }}</h2>
+  <p>{{ text }}</p>
+  {% if action_url %}<a class="btn btn-ink" href="{{ action_url }}">{{ action_label }}</a>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro star_input(entry, prefix='stars') %}
+<fieldset class="stars" aria-label="Your rating">
+  {% for value in range(5, 0, -1) %}
+  <input type="radio" id="{{ prefix }}-{{ entry.id }}-{{ value }}" name="rating" value="{{ value }}" {{ 'checked' if entry.rating == value }} data-autosubmit>
+  <label for="{{ prefix }}-{{ entry.id }}-{{ value }}" title="{{ value }} star{{ 's' if value > 1 }}"><span class="visually-hidden">{{ value }} star{{ 's' if value > 1 }}</span><i class="bi bi-star-fill" aria-hidden="true"></i></label>
+  {% endfor %}
+</fieldset>
+{% endmacro %}

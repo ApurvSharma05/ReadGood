@@ -1,0 +1,16 @@
+{% from "_macros.html" import cover with context %}
+<aside class="auth-art {{ '' if covers else 'no-covers' }}" aria-hidden="true">
+  {% if covers %}
+  <div class="art-grid">
+    {% for src in (covers * 3)[:15] %}{{ cover(src, '') }}{% endfor %}
+  </div>
+  {% else %}
+  <div class="art-type">
+    {% for word in ['Fiction', 'Mystery', 'Poetry', 'History', 'Fantasy', 'Romance', 'Science', 'Memoir'] %}<span>{{ word }}</span>{% endfor %}
+  </div>
+  {% endif %}
+  <div class="quote">
+    <p>“A reader lives a thousand lives before he dies.”</p>
+    <small>George R.R. Martin</small>
+  </div>
+</aside>

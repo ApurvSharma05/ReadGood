@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_macros.html" import book_grid, empty_state with context %}
+{% block title %}For you{% endblock %}
+
+{% block content %}
+<div class="wrap page">
+  <header class="page-head">
+    <div>
+      <p class="kicker"><span class="dot"></span>For you</p>
+      <h1 class="display">Picked <em>for you.</em></h1>
+      {% if picks.because %}
+      <p class="lede">Built from your shelves. Rate more books and these get sharper.</p>
+      {% endif %}
+    </div>
+    {% if picks.because %}
+    <div class="chips" aria-label="Based on">
+      {% for label in picks.because %}<span class="chip chip-sm"><i class="bi bi-stars" aria-hidden="true"></i>{{ label }}</span>{% endfor %}
+    </div>
+    {% endif %}
+  </header>
+
+  {% if picks.books %}
+    {{ book_grid(picks.books) }}
+  {% else %}
+    {{ empty_state('bi-stars', 'Nothing to recommend yet',
+                   'Save a few books you like and rate the ones you have read. Your picks will appear here.',
+                   url_for('main.home'), 'Find books to save') }}
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% from "_macros.html" import book_grid, empty_state with context %}
+{% block title %}{{ heading }}{% endblock %}
+
+{% block content %}
+<div class="wrap page">
+  <a class="back-link" href="{{ back_url or url_for('main.genres') }}"><i class="bi bi-arrow-left" aria-hidden="true"></i>{{ back_label or 'All genres' }}</a>
+  <header class="page-head">
+    <div>
+      <p class="kicker"><span class="dot"></span>{{ eyebrow }}</p>
+      <h1 class="display">{{ heading }}</h1>
+      <p class="lede">{{ intro }}</p>
+    </div>
+    {% if sorts %}
+    <nav class="segmented" aria-label="Order">
+      {% for label, url, is_current in sorts %}
+      <a href="{{ url }}" {{ 'aria-current=true' if is_current }}>{{ label }}</a>
+      {% endfor %}
+    </nav>
+    {% endif %}
+  </header>
+
+  {% if books %}
+    {{ book_grid(books) }}
+  {% else %}
+    {{ empty_state('bi-journal-x', 'Nothing to show yet',
+                   'We could not load books for this page. Please try again in a moment.',
+                   url_for('main.home'), 'Back to Discover') }}
+  {% endif %}
+</div>
+{% endblock %}

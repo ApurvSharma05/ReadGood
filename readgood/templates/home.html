@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% from "_macros.html" import rail, cover, save_fields, empty_state, book_url with context %}
+{% block title %}Discover{% endblock %}
+
+{% block content %}
+<div class="wrap page">
+  <header class="page-head greeting">
+    <div>
+      <p class="kicker"><span class="dot"></span>Discover</p>
+      <h1 class="display">{% if current_user %}Hello, <em>{{ current_user.username }}</em>.{% else %}What will you <em>read</em> next?{% endif %}</h1>
+    </div>
+    <a class="btn btn-line" href="{{ url_for('main.surprise') }}"><i class="bi bi-shuffle" aria-hidden="true"></i>Surprise me</a>
+  </header>
+
+  <nav class="chips chips-scroll wrap-lg" aria-label="Genres">
+    {% for slug, genre in genres.items() %}
+    <a class="chip" href="{{ url_for('main.genre', slug=slug) }}"><i class="bi {{ genre[2] }}" aria-hidden="true"></i>{{ genre[0] }}</a>
+    {% endfor %}
+  </nav>
+
+  {% if spotlight %}
+  <section class="spotlight section" style="margin-top:28px" aria-labelledby="spotlight-title">
+    <div class="backdrop" style="background-image:url('{{ spotlight.cover_url }}')" aria-hidden="true"></div>
+    <a href="{{ book_url(spotlight) }}" tabindex="-1" aria-hidden="true">{{ cover(spotlight.cover_url, spotlight.title, spotlight.author, eager=True) }}</a>
+    <div>
+      <p class="kicker"><span class="dot"></span>No. 1 in fiction this week</p>
+      <h2 id="spotlight-title"><a href="{{ book_url(spotlight) }}" class="text-reset text-decoration-none">{{ spotlight.title }}</a></h2>
+      <p class="by">by {{ spotlight.author }}</p>
+      {% if spotlight.description %}<p class="blurb">{{ spotlight.description }}</p>{% endif %}
+      <div class="actions">
+        <a class="btn btn-paper" href="{{ book_url(spotlight) }}">Read more</a>
+        {% if not saved_status(spotlight) %}
+        <form class="d-inline" action="{{ url_for('library.add') }}" method="post">
+          {{ save_fields(spotlight) }}
+          <button class="btn btn-ghost-light" type="submit"><i class="bi bi-bookmark-plus" aria-hidden="true"></i>Want to read</button>
+        </form>
+        {% else %}
+        <a class="btn btn-ghost-light" href="{{ url_for('library.index') }}"><i class="bi bi-bookmark-check-fill" aria-hidden="true"></i>In your library</a>
+        {% endif %}
+      </div>
+    </div>
+    <dl class="meta-col">
+      <div><dt>Rank</dt><dd>#{{ spotlight.rank }}</dd></div>
+      {% if spotlight.weeks_on_list %}<div><dt>Weeks on list</dt><dd>{{ spotlight.weeks_on_list }}</dd></div>{% endif %}
+      {% if spotlight.publisher %}<div><dt>Publisher</dt><dd style="font-size:1.35rem">{{ spotlight.publisher }}</dd></div>{% endif %}
+    </dl>
+  </section>
+  {% endif %}
+
+  <div class="section">
+    {% if picks and picks.books %}
+      {{ rail({'id': 'for-you', 'title': 'Picked for you', 'subtitle': 'Because you like ' ~ picks.because | join(', '), 'books': picks.books},
+              link=url_for('main.recommendations')) }}
+    {% elif current_user %}
+    <aside class="nudge rail-block">
+      <i class="bi bi-stars" aria-hidden="true"></i>
+      <div>
+        <strong>Your picks start here</strong>
+        <span>Save a few books with the bookmark button and rate the ones you have read.</span>
+      </div>
+    </aside>
+    {% else %}
+    <aside class="nudge rail-block">
+      <i class="bi bi-stars" aria-hidden="true"></i>
+      <div>
+        <strong>Want recommendations made for you?</strong>
+        <span>Create a free account to save books, track your reading and get personal picks.</span>
+      </div>
+      <a class="btn btn-accent" href="{{ url_for('auth.register') }}">Join ReadGood</a>
+    </aside>
+    {% endif %}
+
+    {% for shelf in shelves %}{{ rail(shelf) }}{% endfor %}
+  </div>
+
+  {% if not shelves %}
+    {{ empty_state('bi-cloud-slash', 'Shelves are empty right now',
+                   'Our book sources did not respond. Search still works, or browse by genre.',
+                   url_for('main.genres'), 'Browse genres') }}
+  {% endif %}
+
+  <section class="section" aria-labelledby="authors-title">
+    <div class="rail-head"><div><h2 id="authors-title">Authors to start with</h2></div></div>
+    <div class="chips">
+      {% for name in popular_authors %}
+      <a class="chip" href="{{ url_for('main.author', name=name) }}">{{ name }}</a>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

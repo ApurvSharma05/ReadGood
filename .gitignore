@@ -1,2 +1,26 @@
+# Secrets and local config
 .env
-env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# Local data: the database holds user accounts and must not be committed
+instance/
+*.db
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+.vercel
+.env*
+!.env.example
