@@ -80,3 +80,7 @@ readgood/
   templates/  static/   Jinja templates, CSS and JavaScript
 tests/                  pytest suite (no network access needed)
 ```
+
+## License
+
+Licensed under the MIT License.
