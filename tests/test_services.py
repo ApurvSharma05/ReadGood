@@ -62,6 +62,25 @@ def test_text_cleanup_helpers():
     assert book_service._title_case("IN THE SHADOW OF EIGHT") == "In the Shadow of Eight"
 
 
+def test_failures_are_cached_briefly(app):
+    from readgood.extensions import cache
+
+    app.config["CACHE_TYPE"] = "SimpleCache"
+    cache.init_app(app)
+    calls = []
+
+    def flaky():
+        calls.append(1)
+        return None
+
+    with app.app_context():
+        assert book_service._cached("test:flaky", 60, flaky) is None
+        assert book_service._cached("test:flaky", 60, flaky) is None
+        results = book_service._cached_many([("test:flaky", 60, flaky)])
+    assert results == [None]
+    assert len(calls) == 1  # the rate-limited source was asked only once
+
+
 def test_get_book_rejects_bad_ids(app):
     with app.app_context():
         assert book_service.get_book("google", "../../etc") is None

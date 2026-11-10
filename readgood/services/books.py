@@ -25,7 +25,8 @@ TIMEOUT = (3.05, 8)
 
 GOOGLE_VOLUMES = "https://www.googleapis.com/books/v1/volumes"
 OPEN_LIBRARY = "https://openlibrary.org"
-NYT_LISTS_URL = "https://api.nytimes.com/svc/books/v3/lists/current/{name}.json"
+# One call returns every current list (the per-list endpoint would need three).
+NYT_OVERVIEW_URL = "https://api.nytimes.com/svc/books/v3/lists/overview.json"
 
 HOUR = 3600
 TTL_NYT = 6 * HOUR
@@ -115,13 +116,27 @@ def _get_json(url, params=None):
         return None
 
 
+# Failed or empty upstream answers are remembered briefly, so a rate-limited
+# API (NYT allows 5 calls a minute) is not hit again on every page view.
+_MISS = "__upstream_miss__"
+TTL_MISS = 120
+
+
+def _remember(key, value, ttl):
+    if value:
+        cache.set(key, value, timeout=ttl)
+    else:
+        cache.set(key, _MISS, timeout=TTL_MISS)
+
+
 def _cached(key, ttl, producer):
     hit = cache.get(key)
+    if hit == _MISS:
+        return None
     if hit is not None:
         return hit
     value = producer()
-    if value:
-        cache.set(key, value, timeout=ttl)
+    _remember(key, value, ttl)
     return value
 
 
@@ -131,7 +146,9 @@ def _cached_many(jobs):
     pending = []
     for key, ttl, producer in jobs:
         hit = cache.get(key)
-        if hit is not None:
+        if hit == _MISS:
+            results[key] = None
+        elif hit is not None:
             results[key] = hit
         elif key not in results:
             results[key] = None
@@ -145,8 +162,7 @@ def _cached_many(jobs):
             except Exception:  # a bad upstream payload must not break the page
                 log.exception("Fetching %s failed", key)
                 value = None
-            if value:
-                cache.set(key, value, timeout=ttl)
+            _remember(key, value, ttl)
             results[key] = value
     return [results[key] for key, _, _ in jobs]
 
@@ -354,13 +370,20 @@ def _google_get(url, params):
     return _get_json(url, params)
 
 
-def _fetch_nyt(name, category):
+def _fetch_nyt_overview():
+    """All the lists we show, from a single NYT request: {list name: [books]}."""
     key = os.getenv("NYT_API_KEY")
     if not key:
-        return []
-    data = _get_json(NYT_LISTS_URL.format(name=name), {"api-key": key}) or {}
-    entries = (data.get("results") or {}).get("books") or []
-    return [b for b in (from_nyt(e, category) for e in entries) if b]
+        return {}
+    data = _get_json(NYT_OVERVIEW_URL, {"api-key": key}) or {}
+    wanted = {name: category for name, _, _, category in NYT_LISTS}
+    lists = {}
+    for entry in (data.get("results") or {}).get("lists") or []:
+        name = entry.get("list_name_encoded")
+        if name in wanted:
+            books = [from_nyt(b, wanted[name]) for b in entry.get("books") or []]
+            lists[name] = sorted([b for b in books if b], key=lambda b: b["rank"] or 99)
+    return {name: books for name, books in lists.items() if books}
 
 
 def _fetch_trending():
@@ -471,23 +494,27 @@ def google_search_many(queries, limit=18):
     return [r or [] for r in results]
 
 
-def nyt_list(name, category):
-    return _cached(f"nyt:{name}", TTL_NYT, partial(_fetch_nyt, name, category)) or []
+def nyt_lists():
+    return _cached("nyt:overview", TTL_NYT, _fetch_nyt_overview) or {}
+
+
+def nyt_list(name, category=None):
+    return nyt_lists().get(name, [])
 
 
 def home_shelves():
     """Shelves for the Discover page: NYT lists plus Open Library trending."""
-    jobs = [
-        (f"nyt:{name}", TTL_NYT, partial(_fetch_nyt, name, category))
-        for name, _, _, category in NYT_LISTS
-    ]
-    jobs.append(("ol:trending", TTL_TRENDING, _fetch_trending))
-    results = _cached_many(jobs)
+    overview, trending = _cached_many([
+        ("nyt:overview", TTL_NYT, _fetch_nyt_overview),
+        ("ol:trending", TTL_TRENDING, _fetch_trending),
+    ])
+    overview = overview or {}
 
     shelves = []
-    for (name, title, subtitle, _), books in zip(NYT_LISTS, results):
-        if books:
-            shelves.append({"id": name, "title": title, "subtitle": subtitle, "books": books})
+    for name, title, subtitle, _ in NYT_LISTS:
+        if overview.get(name):
+            shelves.append({"id": name, "title": title, "subtitle": subtitle, "books": overview[name]})
+    results = [trending]
     if results[-1]:
         shelves.append({
             "id": "trending",
@@ -513,8 +540,12 @@ def home_shelves():
 def cached_covers(limit=12):
     """Cover images already in the cache. Never calls an upstream API."""
     covers = []
-    for key in [f"nyt:{name}" for name, _, _, _ in NYT_LISTS] + ["ol:trending"]:
-        for book in cache.get(key) or []:
+    overview = cache.get("nyt:overview")
+    trending = cache.get("ol:trending")
+    groups = list(overview.values()) if isinstance(overview, dict) else []
+    groups.append(trending if isinstance(trending, list) else [])
+    for group in groups:
+        for book in group:
             if book["cover_url"] != DEFAULT_COVER and book["cover_url"] not in covers:
                 covers.append(book["cover_url"])
             if len(covers) >= limit:
@@ -558,8 +589,8 @@ def suggest(query):
 
 
 def _nyt_lookup(isbn):
-    for name, _, _, category in NYT_LISTS:
-        for book in nyt_list(name, category):
+    for books in nyt_lists().values():
+        for book in books:
             if book["source_id"] == isbn:
                 return book
     return None
